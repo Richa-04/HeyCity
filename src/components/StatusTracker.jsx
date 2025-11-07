@@ -2,7 +2,7 @@
 // Track and search service requests with detailed timeline
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Clock, TrendingUp, Filter, X } from 'lucide-react';
+import { Search, MapPin, Calendar, Clock, TrendingUp, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const StatusTracker = ({ data }) => {
   // Safely access data with fallbacks
@@ -14,9 +14,12 @@ const StatusTracker = ({ data }) => {
   const [filteredRequests, setFilteredRequests] = useState(requests);
   const [statusFilter, setStatusFilter] = useState('all');
   const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(50);
 
   useEffect(() => {
     applyFilters();
+    setCurrentPage(1); // Reset to page 1 when filters change
   }, [searchTerm, statusFilter, departmentFilter, requests]);
 
   const applyFilters = () => {
@@ -85,6 +88,51 @@ const StatusTracker = ({ data }) => {
   // Get unique values for filters
   const statuses = ['all', ...new Set(requests.map(r => r.status).filter(Boolean))];
   const departments = ['all', ...new Set(requests.map(r => r.city_department).filter(Boolean))];
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentRequests = filteredRequests.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+    setSelectedRequest(null); // Clear selection when changing pages
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 7;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 4; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -199,8 +247,13 @@ const StatusTracker = ({ data }) => {
           )}
 
           <div className="mt-4 text-sm text-gray-600">
-            Showing <span className="font-semibold">{filteredRequests.length}</span> of{' '}
-            <span className="font-semibold">{requests.length}</span> requests
+            Showing <span className="font-semibold">{startIndex + 1}-{Math.min(endIndex, filteredRequests.length)}</span> of{' '}
+            <span className="font-semibold">{filteredRequests.length}</span> requests
+            {totalPages > 1 && (
+              <span className="ml-2">
+                (Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span>)
+              </span>
+            )}
           </div>
         </div>
 
@@ -212,13 +265,13 @@ const StatusTracker = ({ data }) => {
               <h3 className="text-lg font-bold text-gray-800">Service Requests</h3>
             </div>
             <div className="divide-y max-h-[600px] overflow-y-auto">
-              {filteredRequests.length === 0 ? (
+              {currentRequests.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <Search className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                   <p>No requests found matching your filters</p>
                 </div>
               ) : (
-                filteredRequests.slice(0, 50).map((request, idx) => (
+                currentRequests.map((request, idx) => (
                   <div
                     key={idx}
                     onClick={() => setSelectedRequest(request)}
@@ -259,6 +312,51 @@ const StatusTracker = ({ data }) => {
                 ))
               )}
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="p-4 bg-gray-50 border-t">
+                <div className="flex items-center justify-between gap-4">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                  
+                  <div className="flex items-center gap-1 flex-wrap justify-center">
+                    {getPageNumbers().map((page, idx) => (
+                      page === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`min-w-[40px] px-3 py-2 rounded-lg font-medium transition ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Request Detail */}

@@ -325,9 +325,10 @@ const DataStatistics = ({ data }) => {
                 dataKey="department" 
                 angle={-45} 
                 textAnchor="end" 
-                height={120}
+                height={140}
                 interval={0}
                 tick={{ fontSize: 11 }}
+                tickMargin={15}
               />
               <YAxis />
               <Tooltip 

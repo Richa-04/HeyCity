@@ -14,8 +14,13 @@ const Chatbot = ({ data }) => {
   // Safely access data
   const requests = data?.requests || [];
 
-  useEffect(() => {
-    // Welcome message
+const hasShownWelcome = useRef(false);
+
+// Replace your current useEffect (lines 27-37) with this:
+useEffect(() => {
+  // Only add welcome message once, even on remounts
+  if (!hasShownWelcome.current) {
+    hasShownWelcome.current = true;
     addBotMessage(
       "👋 Hello! I'm your Seattle Customer Service Assistant. I can help you with:\n\n" +
       "1️⃣ Find the right department for your issue\n" +
@@ -25,7 +30,8 @@ const Chatbot = ({ data }) => {
       "5️⃣ Check if similar requests exist in your area\n\n" +
       "What would you like help with today?"
     );
-  }, []);
+  }
+}, []);
 
   useEffect(() => {
     scrollToBottom();
