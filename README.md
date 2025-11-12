@@ -248,14 +248,6 @@ The AI chatbot includes intelligent quick actions for common tasks:
 
 ---
 
-## 🎓 Learn More
-
-- [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
-- [React documentation](https://reactjs.org/)
-- [OpenAI API documentation](https://platform.openai.com/docs)
-
----
-
 <div>
 
 **Made with 💙 for better cities and happier residents**
