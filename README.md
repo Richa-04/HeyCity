@@ -1,4 +1,4 @@
-# 🌆 CityPulse Connect
+# 🌆 Hey City!
 
 <div>
 
